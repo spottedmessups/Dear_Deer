@@ -84,12 +84,17 @@ function spawnStageNotes(index) {
 async function moveStage(p) {
     if (isMoving || !notesReady) return;
     isMoving = true;
+
     deer.style.left = `${PATH_X[p]}px`;
     setFrame(p === "LEFT" ? 1 : p === "RIGHT" ? 2 : 3);
-    if (stageNoteData[p]) playNote(FREQS[stageNoteData[p]]);
+    
+    if (stageNoteData[p]) {
+        playNote(FREQS[stageNoteData[p]]);
+    }
 
     if (p === pathSeq[currentStage]) {
         await new Promise(r => setTimeout(r, 400));
+        // This only removes the letters (A, B, C), not the mistakes
         document.querySelectorAll('.current-notes').forEach(el => el.remove());
         notesReady = false;
         startWalkAnim();
@@ -109,20 +114,26 @@ async function moveStage(p) {
             if (currentStage < melody.length) {
                 spawnStageNotes(currentStage);
             } else {
-                handleEndSequence(); // STARTS REPLAY AT STAGE 25
+                handleEndSequence();
             }
         }, 1200); 
     } else {
+        // --- THIS PART CREATES THE PERMANENT SIGN ---
         const obs = document.createElement('div');
-        obs.className = 'wrong-obstacle';
+        obs.className = 'wrong-obstacle'; 
         obs.style.left = `${PATH_X[p]}px`;
-        obs.style.bottom = `${(currentStage * 256) + 320}px`;
-        forest.appendChild(obs);
-        setTimeout(() => { 
-            obs.remove(); 
-            setFrame(0); 
-            deer.style.left = `256px`; 
-            isMoving = false; 
+        
+        // Calculate position on the map strip
+        const mapY = (currentStage * 256) + 320; 
+        obs.style.bottom = `${mapY}px`;
+        
+        // Add it to the forest so it moves with the map
+        forest.appendChild(obs); 
+        
+        setTimeout(() => {
+            setFrame(0);
+            deer.style.left = `256px`;
+            isMoving = false;
         }, 600);
     }
 }
@@ -134,11 +145,16 @@ async function handleEndSequence() {
     startWalkAnim();
     deer.style.transition = "bottom 3.5s linear";
     deer.style.bottom = "1100px"; 
+    
     setTimeout(async () => {
         stopWalkAnim();
         overlay.innerHTML = "<h1>REPLAY</h1>";
         overlay.style.display = "flex";
-        mapBottom = 0; forest.style.bottom = "0px";
+        
+        // Resetting map position but keeping the .wrong-obstacle elements
+        mapBottom = 0;
+        forest.style.bottom = "0px";
+        
         await new Promise(r => setTimeout(r, 2000));
         overlay.style.display = "none";
         runBirthdayReplay();
@@ -203,3 +219,4 @@ playBtn.onclick = (e) => {
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
+
