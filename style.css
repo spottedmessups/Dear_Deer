@@ -64,3 +64,12 @@ body {
     justify-content: center; align-items: center; z-index: 100;
     color: white; font-family: sans-serif; cursor: pointer;
 }
+.note-graphic {
+    display: block !important;
+    visibility: visible !important;
+    z-index: 100 !important; /* This puts them on top of everything */
+}
+
+.wrong-obstacle {
+    display: block !important;
+    z-index: 100 !important;
