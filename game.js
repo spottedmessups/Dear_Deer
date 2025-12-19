@@ -80,11 +80,11 @@ function spawnStageNotes(index) {
         playNote(FREQS[melody[index]], 0.4); // PLAY THE HINT NOTE
     }, 200);
 }
-
 async function moveStage(p) {
     if (isMoving || !notesReady) return;
     isMoving = true;
 
+    // 1. Move the deer to the chosen path
     deer.style.left = `${PATH_X[p]}px`;
     setFrame(p === "LEFT" ? 1 : p === "RIGHT" ? 2 : 3);
     
@@ -92,47 +92,62 @@ async function moveStage(p) {
         playNote(FREQS[stageNoteData[p]]);
     }
 
+    // Check if the path is correct
     if (p === pathSeq[currentStage]) {
         await new Promise(r => setTimeout(r, 400));
-        // This only removes the letters (A, B, C), not the mistakes
+        
+        // Remove notes but keep mistakes
         document.querySelectorAll('.current-notes').forEach(el => el.remove());
         notesReady = false;
+        
+        // 2. Start walking and scroll map
         startWalkAnim();
         
+        const scrollAmount = 8 * T_SIZE; // 256px
         if (mapBottom > -5888) {
-            mapBottom -= 256;
+            mapBottom -= scrollAmount;
             forest.style.bottom = `${mapBottom}px`;
         } else {
+            // After the map stops scrolling, the deer moves up the screen
             let curB = parseInt(window.getComputedStyle(deer).bottom);
-            deer.style.bottom = (curB + 256) + "px";
+            deer.style.bottom = (curB + scrollAmount) + "px";
         }
 
+        // 3. Wait for the map/deer transition to finish (1.2s)
         setTimeout(() => {
             stopWalkAnim();
-            if (currentStage < 24) deer.style.left = `256px`; 
+            
+            // IMPORTANT: Only return to center if we aren't at the very end
+            // This ensures the deer finishes the 8-tile segment before snapping back
+            if (currentStage < 24) {
+                deer.style.left = `256px`; 
+            }
+            
             currentStage++;
+            
             if (currentStage < melody.length) {
                 spawnStageNotes(currentStage);
             } else {
                 handleEndSequence();
             }
         }, 1200); 
+
     } else {
-        // --- THIS PART CREATES THE PERMANENT SIGN ---
+        // PERMANENT WRONG PATH LOGIC
         const obs = document.createElement('div');
-        obs.className = 'wrong-obstacle'; 
+        obs.className = 'wrong-obstacle';
         obs.style.left = `${PATH_X[p]}px`;
         
-        // Calculate position on the map strip
+        // Use the lower tile calculation we fixed (+288)
         const mapY = (currentStage * 256) + 288; 
         obs.style.bottom = `${mapY}px`;
+        obs.style.pointerEvents = 'none'; // Ensure clicks pass through to Play button
         
-        // Add it to the forest so it moves with the map
-        forest.appendChild(obs); 
+        forest.appendChild(obs);
         
         setTimeout(() => {
             setFrame(0);
-            deer.style.left = `256px`;
+            deer.style.left = `256px`; // Return to center after a mistake
             isMoving = false;
         }, 600);
     }
@@ -226,5 +241,6 @@ playBtn.onclick = (e) => {
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
+
 
 
