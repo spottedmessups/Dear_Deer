@@ -50,8 +50,6 @@ function spawnStageNotes(index) {
     let others = Object.keys(FREQS).filter(n => n !== correct).sort(() => Math.random() - 0.5);
 
     let currentNotes = {};
-    const fragment = document.createDocumentFragment();
-
     ["LEFT", "CENTER", "RIGHT"].forEach(p => {
         let noteName = (p === correctP) ? correct : others.pop();
         currentNotes[p] = noteName;
@@ -61,17 +59,15 @@ function spawnStageNotes(index) {
         noteEl.style.backgroundImage = `url('images/${file}')`;
         noteEl.style.left = `${PATH_X[p]}px`;
         noteEl.style.bottom = `${stageY + 256}px`; 
-        fragment.appendChild(noteEl);
+        forest.appendChild(noteEl);
     });
 
     stageNoteData = currentNotes; 
-    forest.appendChild(fragment);
-    
     setTimeout(() => {
         notesReady = true;
         isMoving = false;
         playNote(FREQS[melody[index]], 0.3);
-    }, 150);
+    }, 100);
 }
 
 async function moveStage(p) {
