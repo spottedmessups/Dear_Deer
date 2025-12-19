@@ -3,12 +3,11 @@
 body {
     display: flex; 
     justify-content: center; 
-    align-items: center;
+    align-items: flex-start; /* Pins game to the top */
     height: 100vh; 
     width: 100vw;
     background-color: #000; 
     overflow: hidden;
-    overscroll-behavior: none; 
 }
 
 #game-container {
@@ -17,8 +16,7 @@ body {
     position: relative;
     background-color: #000;
     overflow: hidden;
-    /* This allows the game to grow/shrink to fit the screen */
-    transform-origin: center center;
+    transform-origin: top center; /* Scales from the top */
     flex-shrink: 0;
 }
 
@@ -48,28 +46,20 @@ body {
     transition: bottom 1.2s ease-in-out;
 }
 
-#play-btn:active {
-    transform: translateX(-50%) translateY(2px) scale(0.95);
-}
-
-.note-graphic {
+.note-graphic, .wrong-obstacle {
     width: 32px; height: 32px; position: absolute;
     background-size: contain; background-repeat: no-repeat;
-    image-rendering: pixelated; z-index: 15;
+    image-rendering: pixelated; z-index: 100 !important;
+}
+
+.wrong-obstacle {
+    height: 64px; /* Obstacle is taller than notes */
+    background-image: url('images/wrong_path.png');
 }
 
 #overlay-ui {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
-    justify-content: center; align-items: center; z-index: 100;
-    color: white; font-family: sans-serif; cursor: pointer;
+    justify-content: center; align-items: center; z-index: 1000;
+    color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
-.note-graphic {
-    display: block !important;
-    visibility: visible !important;
-    z-index: 100 !important; /* This puts them on top of everything */
-}
-
-.wrong-obstacle {
-    display: block !important;
-    z-index: 100 !important;
