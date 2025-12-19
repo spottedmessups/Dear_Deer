@@ -71,5 +71,13 @@ body {
     color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
 
+#play-btn:active {
+    /* Shrinks the button slightly and moves it down 2 pixels */
+    transform: translateX(-50%) scale(0.95) translateY(2px);
+    
+    /* Optional: slightly darken it to look "pushed" */
+    filter: brightness(0.9);
+}
+
 
 
