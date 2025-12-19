@@ -198,14 +198,21 @@ overlay.onclick = () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtx.resume();
     preloadAll();
+    
     overlay.style.display = "none";
-    startWalkAnim();
-    deer.style.transition = "bottom 2s ease-in-out"; 
-    deer.style.bottom = "256px";
     playBtn.style.bottom = "-2px";
-    setTimeout(() => { stopWalkAnim(); spawnStageNotes(0); }, 2000);
-};
 
+    // --- TRIGGER THE WALK-IN ---
+    startWalkAnim(); 
+    deer.style.transition = "bottom 2s ease-in-out"; 
+    deer.style.bottom = "256px"; // Deer walks from -50px to 256px
+
+    // Wait for the walking animation to finish (2 seconds) before spawning notes
+    setTimeout(() => { 
+        stopWalkAnim(); 
+        spawnStageNotes(0); 
+    }, 2000);
+};
 container.onclick = (e) => {
     if (e.target.id === 'play-btn' || isMoving || !notesReady) return;
     const rect = container.getBoundingClientRect();
