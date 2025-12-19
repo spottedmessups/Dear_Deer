@@ -56,8 +56,13 @@ body {
 }
 
 .wrong-obstacle {
-    height: 64px; 
+    width: 32px;
+    height: 64px;
+    position: absolute;
     background-image: url('images/wrong_path.png');
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+    z-index: 5; /* Behind the deer, but on the map */
 }
 
 #overlay-ui {
@@ -67,3 +72,4 @@ body {
     justify-content: center; align-items: center; z-index: 1000;
     color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
+
