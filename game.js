@@ -19,22 +19,19 @@ const playBtn = document.getElementById('play-btn');
 const overlay = document.getElementById('overlay-ui');
 const container = document.getElementById('game-container');
 
-// --- ADDED PRE-LOADING LOGIC ---
-const preloadCache = [];
-function preloadImages() {
-    Object.keys(FREQS).forEach(note => {
+// PRE-LOADING IMAGES
+const cache = [];
+function preload() {
+    Object.keys(FREQS).forEach(n => {
         const img = new Image();
-        const file = `note_${note.toLowerCase().replace('_high','')}${note.includes('HIGH') ? '_high' : ''}.png`;
+        const file = `note_${n.toLowerCase().replace('_high','')}${n.includes('HIGH') ? '_high' : ''}.png`;
         img.src = `images/${file}`;
-        preloadCache.push(img);
+        cache.push(img);
     });
 }
-// -------------------------------
 
 function resize() {
-    const vh = window.innerHeight;
-    const vw = window.innerWidth;
-    const scale = Math.min(vw / 544, vh / 960);
+    const scale = Math.min(window.innerWidth / 544, window.innerHeight / 960);
     container.style.transform = `scale(${scale})`;
 }
 window.addEventListener('resize', resize);
@@ -57,23 +54,19 @@ function playNote(f, duration = 0.5) {
 function spawnStageNotes(index) {
     notesReady = false;
     document.querySelectorAll('.current-notes').forEach(el => el.remove());
-    
     const stageY = (index * 8 * T_SIZE) + 64;
     const correct = melody[index];
     const correctP = pathSeq[index];
     let others = Object.keys(FREQS).filter(n => n !== correct).sort(() => Math.random() - 0.5);
-
     let currentNotes = {};
     const fragment = document.createDocumentFragment();
 
     ["LEFT", "CENTER", "RIGHT"].forEach(p => {
         let noteName = (p === correctP) ? correct : others.pop();
         currentNotes[p] = noteName;
-        
         const noteEl = document.createElement('div');
         noteEl.className = 'note-graphic current-notes';
         const file = `note_${noteName.toLowerCase().replace('_high','')}${noteName.includes('HIGH') ? '_high' : ''}.png`;
-        
         noteEl.style.backgroundImage = `url('images/${file}')`;
         noteEl.style.left = `${PATH_X[p]}px`;
         noteEl.style.bottom = `${stageY + 256}px`; 
@@ -82,48 +75,34 @@ function spawnStageNotes(index) {
 
     stageNoteData = currentNotes; 
     forest.appendChild(fragment); 
-    
-    setTimeout(() => {
-        notesReady = true;
-        isMoving = false;
-    }, 100);
+    setTimeout(() => { notesReady = true; isMoving = false; }, 100);
 }
 
 async function moveStage(p) {
     if (isMoving || !notesReady) return;
     isMoving = true;
-
     deer.style.left = `${PATH_X[p]}px`;
     setFrame(p === "LEFT" ? 1 : p === "RIGHT" ? 2 : 3);
-    
-    if (stageNoteData[p]) {
-        playNote(FREQS[stageNoteData[p]]);
-    }
+    if (stageNoteData[p]) playNote(FREQS[stageNoteData[p]]);
 
     if (p === pathSeq[currentStage]) {
         await new Promise(r => setTimeout(r, 400));
         document.querySelectorAll('.current-notes').forEach(el => el.remove());
         notesReady = false;
         startWalkAnim();
-        
-        const freezeThreshold = - (23 * 8 * T_SIZE); 
-        if (mapBottom > freezeThreshold) {
-            mapBottom -= (8 * T_SIZE);
+        if (mapBottom > -5888) {
+            mapBottom -= 256;
             forest.style.bottom = `${mapBottom}px`;
         } else {
             let curB = parseInt(window.getComputedStyle(deer).bottom);
-            deer.style.bottom = (curB + (8 * T_SIZE)) + "px";
+            deer.style.bottom = (curB + 256) + "px";
         }
-
         setTimeout(() => {
             stopWalkAnim();
             if (currentStage < 23) deer.style.left = `256px`; 
             currentStage++;
-            if (currentStage < melody.length) {
-                spawnStageNotes(currentStage);
-            } else {
-                handleEndSequence();
-            }
+            if (currentStage < melody.length) spawnStageNotes(currentStage);
+            else handleEndSequence();
         }, 1200); 
     } else {
         isMoving = false; 
@@ -131,31 +110,22 @@ async function moveStage(p) {
 }
 
 async function handleEndSequence() {
-    isMoving = true;
-    playBtn.style.bottom = "-120px";
+    isMoving = true; playBtn.style.bottom = "-120px";
     await new Promise(r => setTimeout(r, 1000));
     startWalkAnim();
     deer.style.transition = "bottom 3.5s linear";
     deer.style.bottom = "1100px"; 
-    
     setTimeout(async () => {
-        stopWalkAnim();
-        overlay.innerHTML = "<h1>REPLAY</h1>";
-        overlay.style.display = "flex";
-        mapBottom = 0;
-        forest.style.bottom = "0px";
+        stopWalkAnim(); overlay.innerHTML = "<h1>REPLAY</h1>"; overlay.style.display = "flex";
+        mapBottom = 0; forest.style.bottom = "0px";
         await new Promise(r => setTimeout(r, 2000));
-        overlay.style.display = "none";
-        runBirthdayReplay();
+        overlay.style.display = "none"; runBirthdayReplay();
     }, 3500);
 }
 
 async function runBirthdayReplay() {
-    deer.style.transition = "none";
-    deer.style.bottom = "256px";
-    deer.style.left = "256px";
-    setFrame(0);
-    await new Promise(r => setTimeout(r, 500));
+    deer.style.transition = "none"; deer.style.bottom = "256px"; deer.style.left = "256px";
+    setFrame(0); await new Promise(r => setTimeout(r, 500));
     startWalkAnim();
     const rhythm = [400, 400, 800, 800, 800, 1200]; 
     for (let i = 0; i < melody.length; i++) {
@@ -168,19 +138,14 @@ async function runBirthdayReplay() {
         const walkDuration = (stepTime - 100) / 1000;
         deer.style.transition = `bottom ${walkDuration}s linear`;
         forest.style.transition = `bottom ${walkDuration}s linear`;
-        mapBottom -= (8 * T_SIZE);
-        forest.style.bottom = `${mapBottom}px`;
+        mapBottom -= 256; forest.style.bottom = `${mapBottom}px`;
         playNote(FREQS[melody[i]], 0.4);
         await new Promise(r => setTimeout(r, stepTime - 100));
     }
     await new Promise(r => setTimeout(r, 500));
     deer.style.transition = "bottom 3.5s linear";
     deer.style.bottom = "1100px";
-    setTimeout(() => {
-        stopWalkAnim();
-        playBtn.style.bottom = "-2px"; 
-        playBtn.onclick = () => location.reload();
-    }, 15000);
+    setTimeout(() => { stopWalkAnim(); playBtn.style.bottom = "-2px"; playBtn.onclick = () => location.reload(); }, 15000);
 }
 
 function startWalkAnim() { if(!walkInt) { let t=true; walkInt = setInterval(()=>{setFrame(t?3:4);t=!t;},150); } }
@@ -189,16 +154,13 @@ function stopWalkAnim() { clearInterval(walkInt); walkInt = null; setFrame(0); }
 overlay.onclick = () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtx.resume();
-    preloadImages(); // Added call here
+    preload();
     overlay.style.display = "none";
     startWalkAnim();
     deer.style.transition = "bottom 2s ease-in-out"; 
     deer.style.bottom = "256px";
     playBtn.style.bottom = "-2px";
-    setTimeout(() => {
-        stopWalkAnim();
-        spawnStageNotes(0);
-    }, 2000);
+    setTimeout(() => { stopWalkAnim(); spawnStageNotes(0); }, 2000);
 };
 
 container.onclick = (e) => {
@@ -215,10 +177,3 @@ playBtn.onclick = (e) => {
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
-
-window.onkeydown = (e) => {
-    if (e.key === "ArrowLeft") moveStage("LEFT");
-    if (e.key === "ArrowUp") moveStage("CENTER");
-    if (e.key === "ArrowRight") moveStage("RIGHT");
-};
-
