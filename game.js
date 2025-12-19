@@ -177,3 +177,4 @@ playBtn.onclick = (e) => {
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
+
