@@ -3,13 +3,7 @@ const PATH_X = { LEFT: 64, CENTER: 256, RIGHT: 448 };
 const FREQS = {'G':392, 'A':440, 'B':493, 'C':523, 'D':587, 'E':659, 'G_HIGH':784, 'F_HIGH':698, 'E_HIGH':659};
 
 const melody = ['G','G','A','G','C','B', 'G','G','A','G','D','C', 'G','G','G_HIGH','E_HIGH','C','B','A', 'F_HIGH','F_HIGH','E_HIGH','C','D','C'];
-
-const pathSeq = [
-    "LEFT", "CENTER", "RIGHT", "LEFT", "CENTER", "RIGHT", 
-    "CENTER", "LEFT", "RIGHT", "LEFT", "CENTER", "LEFT", 
-    "RIGHT", "LEFT", "CENTER", "RIGHT", "LEFT", "CENTER", 
-    "LEFT", "RIGHT", "CENTER", "RIGHT", "LEFT", "LEFT", "CENTER" 
-];
+const pathSeq = ["LEFT", "CENTER", "RIGHT", "LEFT", "CENTER", "RIGHT", "CENTER", "LEFT", "RIGHT", "LEFT", "CENTER", "LEFT", "RIGHT", "LEFT", "CENTER", "RIGHT", "LEFT", "CENTER", "LEFT", "RIGHT", "CENTER", "RIGHT", "LEFT", "LEFT", "CENTER"];
 
 let currentStage = 0;
 let isMoving = true; 
@@ -23,6 +17,15 @@ const forest = document.getElementById('forest-scene');
 const deer = document.getElementById('deer-sprite');
 const playBtn = document.getElementById('play-btn');
 const overlay = document.getElementById('overlay-ui');
+const container = document.getElementById('game-container');
+
+// --- SCREEN SCALING ---
+function resize() {
+    const scale = Math.min(window.innerWidth / 544, window.innerHeight / 960);
+    container.style.transform = `scale(${scale})`;
+}
+window.onresize = resize;
+resize();
 
 function setFrame(n) { deer.style.backgroundPositionX = `-${n * T_SIZE}px`; }
 
@@ -39,6 +42,7 @@ function playNote(f, duration = 0.5) {
 }
 
 function spawnStageNotes(index) {
+    document.querySelectorAll('.current-notes').forEach(el => el.remove());
     const stageY = (index * 8 * T_SIZE) + 64;
     const correct = melody[index];
     const correctP = pathSeq[index];
@@ -50,23 +54,24 @@ function spawnStageNotes(index) {
         stageNotes[p] = noteName;
         const noteEl = document.createElement('div');
         noteEl.className = 'note-graphic current-notes';
-        const file = `images/note_${noteName.toLowerCase().replace('_high','')}${noteName.includes('HIGH') ? '_high' : ''}.png`;
-        noteEl.style.backgroundImage = `url('${file}')`;
+        const file = `note_${noteName.toLowerCase().replace('_high','')}${noteName.includes('HIGH') ? '_high' : ''}.png`;
+        noteEl.style.backgroundImage = `url('images/${file}')`;
         noteEl.style.left = `${PATH_X[p]}px`;
         noteEl.style.bottom = `${stageY + 256}px`; 
         forest.appendChild(noteEl);
     });
-    stageNoteData[index] = stageNotes;
+    stageNoteData = stageNotes;
     notesReady = true;
+    isMoving = false;
 }
 
 async function moveStage(p) {
-    if (isMoving || !notesReady || currentStage >= melody.length) return;
+    if (isMoving || !notesReady) return;
     isMoving = true;
 
     deer.style.left = `${PATH_X[p]}px`;
     setFrame(p === "LEFT" ? 1 : p === "RIGHT" ? 2 : 3);
-    playNote(FREQS[stageNoteData[currentStage][p]]);
+    playNote(FREQS[stageNoteData[p]]);
 
     if (p === pathSeq[currentStage]) {
         await new Promise(r => setTimeout(r, 400));
@@ -85,17 +90,10 @@ async function moveStage(p) {
 
         setTimeout(() => {
             stopWalkAnim();
-            if (currentStage < 23) {
-                deer.style.left = `256px`; 
-            }
-            
+            if (currentStage < 23) deer.style.left = `256px`; 
             currentStage++;
             if (currentStage < melody.length) {
-                setTimeout(() => {
-                    spawnStageNotes(currentStage);
-                    playNote(FREQS[melody[currentStage]]);
-                    isMoving = false; 
-                }, 600);
+                spawnStageNotes(currentStage);
             } else {
                 handleEndSequence();
             }
@@ -104,7 +102,7 @@ async function moveStage(p) {
         const obs = document.createElement('div');
         obs.className = 'wrong-obstacle';
         obs.style.left = `${PATH_X[p]}px`;
-        obs.style.bottom = `${(currentStage * 8 * T_SIZE) + 64 + 256 - 32}px`;
+        obs.style.bottom = `${(currentStage * 8 * T_SIZE) + 320}px`;
         forest.appendChild(obs);
         setTimeout(() => { setFrame(0); deer.style.left = `256px`; isMoving = false; }, 400);
     }
@@ -117,7 +115,6 @@ async function handleEndSequence() {
     startWalkAnim();
     deer.style.transition = "bottom 3.5s linear";
     deer.style.bottom = "1100px"; 
-    
     setTimeout(async () => {
         stopWalkAnim();
         overlay.innerHTML = "<h1>REPLAY</h1>";
@@ -137,18 +134,14 @@ async function runBirthdayReplay() {
     setFrame(0);
     await new Promise(r => setTimeout(r, 500));
     startWalkAnim();
-
     const rhythm = [400, 400, 800, 800, 800, 1200]; 
-    
     for (let i = 0; i < melody.length; i++) {
         const path = pathSeq[i];
         const stepTime = rhythm[i % rhythm.length] || 600;
-        
         deer.style.transition = "left 0.1s linear";
         deer.style.left = `${PATH_X[path]}px`;
         setFrame(path === "LEFT" ? 1 : path === "RIGHT" ? 2 : 3);
         await new Promise(r => setTimeout(r, 100));
-
         const walkDuration = (stepTime - 100) / 1000;
         deer.style.transition = `bottom ${walkDuration}s linear`;
         forest.style.transition = `bottom ${walkDuration}s linear`;
@@ -157,11 +150,9 @@ async function runBirthdayReplay() {
         playNote(FREQS[melody[i]], 0.4);
         await new Promise(r => setTimeout(r, stepTime - 100));
     }
-    
     await new Promise(r => setTimeout(r, 500));
     deer.style.transition = "bottom 3.5s linear";
     deer.style.bottom = "1100px";
-    
     setTimeout(() => {
         stopWalkAnim();
         playBtn.style.bottom = "-2px"; 
@@ -172,7 +163,6 @@ async function runBirthdayReplay() {
 function startWalkAnim() { if(!walkInt) { let t=true; walkInt = setInterval(()=>{setFrame(t?3:4);t=!t;},150); } }
 function stopWalkAnim() { clearInterval(walkInt); walkInt = null; setFrame(0); }
 
-// CLICK TO START
 overlay.onclick = () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtx.resume();
@@ -181,34 +171,29 @@ overlay.onclick = () => {
     deer.style.transition = "bottom 2s ease-in-out"; 
     deer.style.bottom = "256px";
     playBtn.style.bottom = "-2px";
-    
     setTimeout(() => {
         stopWalkAnim();
-        isMoving = false; 
         spawnStageNotes(0);
-        playNote(FREQS[melody[0]]);
     }, 2000);
 };
 
-// --- RESTORED KEYBOARD CONTROLS ---
-window.addEventListener('keydown', (e) => {
-    if (e.key === "ArrowLeft") moveStage("LEFT");
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") moveStage("CENTER");
-    if (e.key === "ArrowRight") moveStage("RIGHT");
-});
-
-// --- TOUCH/CLICK CONTROLS ---
-document.getElementById('game-container').onclick = (e) => {
+container.onclick = (e) => {
     if (e.target.id === 'play-btn' || isMoving || !notesReady) return;
-    const rect = document.getElementById('game-container').getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const width = rect.width;
-    if (x < width / 3) moveStage("LEFT");
-    else if (x > (width / 3) * 2) moveStage("RIGHT");
+    const rect = container.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / (rect.width / 544);
+    if (x < 181) moveStage("LEFT");
+    else if (x > 362) moveStage("RIGHT");
     else moveStage("CENTER");
 };
 
 playBtn.onclick = (e) => { 
     e.stopPropagation(); 
-    if (currentStage < melody.length) playNote(FREQS[melody[currentStage]]); 
+    if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
+
+window.onkeydown = (e) => {
+    if (e.key === "ArrowLeft") moveStage("LEFT");
+    if (e.key === "ArrowUp") moveStage("CENTER");
+    if (e.key === "ArrowRight") moveStage("RIGHT");
+};
+
