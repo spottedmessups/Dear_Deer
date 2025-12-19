@@ -19,6 +19,7 @@ const playBtn = document.getElementById('play-btn');
 const overlay = document.getElementById('overlay-ui');
 const container = document.getElementById('game-container');
 
+// Scale the game to fit screen
 function resize() {
     const scale = Math.min(window.innerWidth / 544, window.innerHeight / 960);
     container.style.transform = `scale(${scale})`;
@@ -30,6 +31,7 @@ function setFrame(n) { deer.style.backgroundPositionX = `-${n * T_SIZE}px`; }
 
 function playNote(f, duration = 0.5) {
     if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     o.frequency.setValueAtTime(f, audioCtx.currentTime);
@@ -67,7 +69,7 @@ function spawnStageNotes(index) {
         notesReady = true;
         isMoving = false;
         playNote(FREQS[melody[index]], 0.3);
-    }, 100);
+    }, 200);
 }
 
 async function moveStage(p) {
@@ -162,21 +164,23 @@ async function runBirthdayReplay() {
 function startWalkAnim() { if(!walkInt) { let t=true; walkInt = setInterval(()=>{setFrame(t?3:4);t=!t;},150); } }
 function stopWalkAnim() { clearInterval(walkInt); walkInt = null; setFrame(0); }
 
-overlay.onclick = () => {
+// THE CRITICAL START LOGIC
+overlay.addEventListener('click', () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume();
-    overlay.style.display = "none";
-    startWalkAnim();
-    deer.style.transition = "bottom 2s ease-in-out"; 
-    deer.style.bottom = "256px";
-    playBtn.style.bottom = "-2px";
-    setTimeout(() => {
-        stopWalkAnim();
-        spawnStageNotes(0);
-    }, 2000);
-};
+    audioCtx.resume().then(() => {
+        overlay.style.display = "none";
+        startWalkAnim();
+        deer.style.transition = "bottom 2s ease-in-out"; 
+        deer.style.bottom = "256px";
+        playBtn.style.bottom = "-2px";
+        setTimeout(() => {
+            stopWalkAnim();
+            spawnStageNotes(0);
+        }, 2000);
+    });
+});
 
-container.onclick = (e) => {
+container.addEventListener('click', (e) => {
     if (e.target.id === 'play-btn' || isMoving || !notesReady) return;
     const rect = container.getBoundingClientRect();
     const scale = rect.width / 544;
@@ -184,15 +188,9 @@ container.onclick = (e) => {
     if (x < 181) moveStage("LEFT");
     else if (x > 362) moveStage("RIGHT");
     else moveStage("CENTER");
-};
+});
 
-playBtn.onclick = (e) => { 
+playBtn.addEventListener('click', (e) => { 
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
-};
-
-window.onkeydown = (e) => {
-    if (e.key === "ArrowLeft") moveStage("LEFT");
-    if (e.key === "ArrowUp") moveStage("CENTER");
-    if (e.key === "ArrowRight") moveStage("RIGHT");
-};
+});
