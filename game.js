@@ -1,5 +1,3 @@
-
-/* game.js - Stable Scaling Version + Pre-loading Logic */
 const T_SIZE = 32;
 const PATH_X = { LEFT: 64, CENTER: 256, RIGHT: 448 };
 const FREQS = {'G':392, 'A':440, 'B':493, 'C':523, 'D':587, 'E':659, 'G_HIGH':784, 'F_HIGH':698, 'E_HIGH':659};
@@ -21,18 +19,18 @@ const playBtn = document.getElementById('play-btn');
 const overlay = document.getElementById('overlay-ui');
 const container = document.getElementById('game-container');
 
-// --- PRE-LOADING ASSETS ---
-const preloadedImages = [];
-function preloadNotes() {
-    Object.keys(FREQS).forEach(noteName => {
+// --- ADDED PRE-LOADING LOGIC ---
+const preloadCache = [];
+function preloadImages() {
+    Object.keys(FREQS).forEach(note => {
         const img = new Image();
-        const file = `note_${noteName.toLowerCase().replace('_high','')}${noteName.includes('HIGH') ? '_high' : ''}.png`;
+        const file = `note_${note.toLowerCase().replace('_high','')}${note.includes('HIGH') ? '_high' : ''}.png`;
         img.src = `images/${file}`;
-        preloadedImages.push(img);
+        preloadCache.push(img);
     });
 }
+// -------------------------------
 
-// --- SCREEN SCALING ---
 function resize() {
     const vh = window.innerHeight;
     const vw = window.innerWidth;
@@ -58,7 +56,6 @@ function playNote(f, duration = 0.5) {
 
 function spawnStageNotes(index) {
     notesReady = false;
-    // Clear old notes
     document.querySelectorAll('.current-notes').forEach(el => el.remove());
     
     const stageY = (index * 8 * T_SIZE) + 64;
@@ -84,7 +81,7 @@ function spawnStageNotes(index) {
     });
 
     stageNoteData = currentNotes; 
-    forest.appendChild(fragment); // Simultaneous injection
+    forest.appendChild(fragment); 
     
     setTimeout(() => {
         notesReady = true;
@@ -129,12 +126,7 @@ async function moveStage(p) {
             }
         }, 1200); 
     } else {
-        // Simple reset if wrong
-        setTimeout(() => {
-            setFrame(0);
-            deer.style.left = `256px`;
-            isMoving = false;
-        }, 400);
+        isMoving = false; 
     }
 }
 
@@ -197,7 +189,7 @@ function stopWalkAnim() { clearInterval(walkInt); walkInt = null; setFrame(0); }
 overlay.onclick = () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtx.resume();
-    preloadNotes(); // START PRE-LOADING AS SOON AS USER CLICKS
+    preloadImages(); // Added call here
     overlay.style.display = "none";
     startWalkAnim();
     deer.style.transition = "bottom 2s ease-in-out"; 
@@ -229,3 +221,4 @@ window.onkeydown = (e) => {
     if (e.key === "ArrowUp") moveStage("CENTER");
     if (e.key === "ArrowRight") moveStage("RIGHT");
 };
+
