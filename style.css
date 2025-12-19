@@ -3,7 +3,7 @@
 body {
     display: flex; 
     justify-content: center; 
-    align-items: flex-start; /* Pins game to the top */
+    align-items: flex-start; 
     height: 100vh; 
     width: 100vw;
     background-color: #000; 
@@ -16,7 +16,7 @@ body {
     position: relative;
     background-color: #000;
     overflow: hidden;
-    transform-origin: top center; /* Scales from the top */
+    transform-origin: top center; 
     flex-shrink: 0;
 }
 
@@ -24,13 +24,16 @@ body {
     width: 544px; height: 7392px;
     background-image: url('images/my_map.png');
     background-size: 100% 100%; position: absolute;
-    left: 0; bottom: 0; image-rendering: pixelated;
+    left: 0; 
+    bottom: 0; /* Map is already at the start position */
+    image-rendering: pixelated;
     transition: bottom 1.2s ease-in-out; 
 }
 
 #deer-sprite {
     width: 32px; height: 32px; position: absolute;
-    bottom: -50px; left: 256px;
+    bottom: 256px; /* Deer is already standing on the path */
+    left: 256px;
     background-image: url('images/deer_sprite.png');
     background-size: 160px 32px; image-rendering: pixelated;
     z-index: 10;
@@ -53,13 +56,14 @@ body {
 }
 
 .wrong-obstacle {
-    height: 64px; /* Obstacle is taller than notes */
+    height: 64px; 
     background-image: url('images/wrong_path.png');
 }
 
 #overlay-ui {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
+    background: rgba(0, 0, 0, 0.7); /* Slightly more transparent so you see the map */
+    display: flex; flex-direction: column;
     justify-content: center; align-items: center; z-index: 1000;
     color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
