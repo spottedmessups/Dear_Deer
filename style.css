@@ -43,7 +43,7 @@ body {
     bottom: -120px; left: 50%; transform: translateX(-50%);
     background-image: url('images/play.png');
     background-size: 100% 100%;
-    cursor: pointer; z-index: 20;
+    cursor: pointer; z-index: 2000;
     transition: bottom 1.2s ease-in-out;
 }
 
@@ -70,5 +70,6 @@ body {
     justify-content: center; align-items: center; z-index: 1000;
     color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
+
 
 
