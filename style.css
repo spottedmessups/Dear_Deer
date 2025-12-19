@@ -29,17 +29,15 @@ body {
     image-rendering: pixelated;
     transition: bottom 1.2s ease-in-out; 
 }
-
 #deer-sprite {
     width: 32px; height: 32px; position: absolute;
-    bottom: 256px; /* Deer is already standing on the path */
+    bottom: -50px; /* Moves deer below the bottom edge */
     left: 256px;
     background-image: url('images/deer_sprite.png');
     background-size: 160px 32px; image-rendering: pixelated;
     z-index: 10;
     transition: left 0.4s ease, bottom 1.2s ease-in-out; 
 }
-
 #play-btn {
     width: 192px; height: 96px; position: absolute;
     bottom: -120px; left: 50%; transform: translateX(-50%);
@@ -72,4 +70,5 @@ body {
     justify-content: center; align-items: center; z-index: 1000;
     color: white; font-family: sans-serif; cursor: pointer; text-align: center;
 }
+
 
