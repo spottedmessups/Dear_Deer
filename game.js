@@ -124,7 +124,7 @@ async function moveStage(p) {
         obs.style.left = `${PATH_X[p]}px`;
         
         // Calculate position on the map strip
-        const mapY = (currentStage * 256) + 320; 
+        const mapY = (currentStage * 256) + 288; 
         obs.style.bottom = `${mapY}px`;
         
         // Add it to the forest so it moves with the map
@@ -219,4 +219,5 @@ playBtn.onclick = (e) => {
     e.stopPropagation(); 
     if (!isMoving && notesReady) playNote(FREQS[melody[currentStage]]); 
 };
+
 
